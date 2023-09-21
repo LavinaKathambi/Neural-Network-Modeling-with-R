@@ -1,0 +1,103 @@
+---
+Title: "Neural Network Modeling with R"
+author: "Lavina Kathambi"
+date: "2023-09-21"
+output:
+  pdf_document: default
+  html_document: default
+---
+
+
+# Installing & Loading Relevant Libraries 
+```{r}
+# install.packages("neuralnet") # Used for building and training neural networks
+library(dplyr)
+library(neuralnet)
+
+```
+
+# Data Loading and Exploration:
+```{r}
+mydata <- read.csv("/Users/lavinakathambi/Desktop/R/AI/lab3/Lab3_all_by_stu_term.csv", header = TRUE)
+head(mydata)
+```
+# Display basic statistics of the loaded data
+```{r}
+summary(mydata)
+```
+
+# Data Preprocessing:
+```{r}
+# Filter out BMI outliers, keeping only values between 0 and 100
+mydata <- subset(mydata, bmi > 0 & bmi < 100)
+
+# Drop rows with missing values in 'bmi', 'bmi_gender', and 'fitbit_steps'
+mydata <- mydata[complete.cases(mydata$bmi, mydata$bmi_gender, mydata$fitbit_steps), ]
+
+# Convert 'bmi_gender' from M/F to numeric (1/0)
+mydata$bmi_gender <- ifelse(mydata$bmi_gender == "M", 1, 0)
+
+head(mydata[c("bmi", "bmi_gender", "fitbit_steps")])
+```
+
+# Data Splitting:
+```{r}
+
+# Split the data into a training set (80%) and a test set (20%)
+set.seed(123) # For reproducibility 
+data_rows <- floor(0.80 * nrow(mydata)) # Calculating the Number of Rows for Training = 80% of data
+train_indices <- sample(c(1:nrow(mydata)), data_rows) #Creating Random Training Indices = 80% of data size
+train_data <- mydata[train_indices,] # Subsetting the training data from the dataset
+test_data <- mydata[-train_indices,] # Subsetting the testing data from the dataset
+
+head(train_indices)
+head(train_data)
+head(test_data)
+
+```
+
+# Neural Network Modeling:
+
+```{r}
+# Train a neural network model using the specified architecture
+model = neuralnet(
+  term_gpa ~ bmi + bmi_gender + fitbit_steps,
+  data=train_data,
+  hidden=c(4,2), # Defining our hidden layers
+  linear.output = TRUE #TRUE = regression task
+)
+
+```
+
+# Visualizing the trained neural network model
+```{r}
+plot(model,rep = "best")
+```
+
+# Model Evaluation:
+
+```{r}
+# Generating predictions on the test set using the trained model
+pred <- predict(model, test_data)
+
+# Computing the residuals between the predicted and actual values
+residuals <- test_data$term_gpa - pred
+
+# Calculating total variance of the actual values
+TSS <- sum((test_data$term_gpa - mean(train_data$term_gpa))^2)
+TSS
+
+# Compute the variance of the residuals
+RSS <- sum(residuals^2)
+RSS
+
+# Determine the proportion of variance explained by the model (R^2)
+R2 <- 1 - (RSS/TSS)
+print(R2)
+
+# Calculate the average prediction error (RMSE)
+RMSE <- sqrt(mean(residuals^2))
+print(RMSE)
+```
+In summary, while the model has some explanatory power, it does not explain a large proportion of the variance in term_gpa, and the average prediction error (RMSE) is approximately 0.7547 units. Further analysis and potentially model improvement may be needed depending on the specific goals and requirements of your analysis or prediction task.
+
