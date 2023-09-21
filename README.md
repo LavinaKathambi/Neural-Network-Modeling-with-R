@@ -1,5 +1,8 @@
 # Neural Network Modeling with R
 
+![image](https://github.com/LavinaKathambi/Neural-Network-Modeling-with-R/assets/50262369/79ef197b-b747-438b-9767-458fdc5297ac)
+
+
 ## Objective
 
 The goal of this lab is get an introduction to the basics of neural network modeling using the neuralnet package in R. 
